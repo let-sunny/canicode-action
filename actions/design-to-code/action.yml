@@ -112,7 +112,7 @@ runs:
     - name: Install AI SDK and Playwright
       shell: bash
       run: |
-        ACTION_DIR="${{ github.action_path }}/actions/design-to-code"
+        ACTION_DIR="${{ github.action_path }}"
         cd "$ACTION_DIR"
         npm install ai @ai-sdk/anthropic @ai-sdk/openai @ai-sdk/google playwright
         npx playwright install --with-deps chromium
@@ -130,7 +130,7 @@ runs:
         ANALYSIS_PATH: /tmp/canicode-analysis.json
         HAS_SCREENSHOT: ${{ steps.screenshot.outputs.has_screenshot }}
       run: |
-        ACTION_DIR="${{ github.action_path }}/actions/design-to-code"
+        ACTION_DIR="${{ github.action_path }}"
         # Set provider-specific API key
         case "$LLM_PROVIDER" in
           claude)  export ANTHROPIC_API_KEY="$LLM_API_KEY" ;;
@@ -145,7 +145,7 @@ runs:
       shell: bash
       env:
         OUTPUT_DIR: ${{ inputs.output_dir }}
-      run: node "${{ github.action_path }}/actions/design-to-code/capture.mjs"
+      run: node "${{ github.action_path }}/capture.mjs"
 
     # 8. Create PR
     - name: Create PR
