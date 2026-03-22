@@ -1,0 +1,170 @@
+name: 'CanICode Score Gate'
+description: 'Analyze Figma designs for development-readiness and fail if score is below threshold. Like Lighthouse CI, but for design quality.'
+author: 'let-sunny'
+branding:
+  icon: 'check-circle'
+  color: 'blue'
+
+inputs:
+  figma_url:
+    description: 'Figma URL with node-id (e.g., https://www.figma.com/design/ABC/File?node-id=1-234)'
+    required: true
+  figma_token:
+    description: 'Figma API token (Personal Access Token with file read access)'
+    required: true
+  min_score:
+    description: 'Minimum score to pass (0-100). Fails the check if below this threshold.'
+    required: false
+    default: '60'
+  preset:
+    description: 'Analysis preset: relaxed | dev-friendly | ai-ready | strict'
+    required: false
+    default: 'dev-friendly'
+  comment:
+    description: 'Post analysis results as a PR comment (true/false)'
+    required: false
+    default: 'true'
+
+outputs:
+  score:
+    description: 'Overall score percentage (0-100)'
+  grade:
+    description: 'Overall grade (A/B/C/D/F)'
+  passed:
+    description: 'Whether the score met the minimum threshold (true/false)'
+  report_json:
+    description: 'Full analysis result as JSON'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Run canicode analysis
+      id: analyze
+      shell: bash
+      env:
+        FIGMA_TOKEN: ${{ inputs.figma_token }}
+      run: |
+        # Install and run canicode
+        npx -y canicode save-fixture "${{ inputs.figma_url }}" \
+          --output /tmp/canicode-fixture.json \
+          --token "$FIGMA_TOKEN"
+
+        RAW=$(npx -y canicode analyze /tmp/canicode-fixture.json \
+          --preset "${{ inputs.preset }}" \
+          --json 2>&1)
+        RESULT=$(echo "$RAW" | sed -n '/^{/,/^}/p')
+
+        # Extract fields
+        SCORE=$(echo "$RESULT" | jq -r '.scores.overall.percentage')
+        GRADE=$(echo "$RESULT" | jq -r '.scores.overall.grade')
+        NODES=$(echo "$RESULT" | jq -r '.nodeCount')
+        ISSUES=$(echo "$RESULT" | jq -r '.issueCount')
+        BLOCKING=$(echo "$RESULT" | jq -r '.summary' | grep -oP 'Blocking: \K\d+' || echo 0)
+        RISK=$(echo "$RESULT" | jq -r '.summary' | grep -oP 'Risk: \K\d+' || echo 0)
+
+        # Category table
+        CATEGORIES=$(echo "$RESULT" | jq -r '.scores.categories | to_entries | map("| \(.key) | \(.value.percentage)% |") | .[]')
+
+        # Pass/fail
+        MIN=${{ inputs.min_score }}
+        if [ "$SCORE" -ge "$MIN" ]; then
+          PASSED=true
+          STATUS="PASSED"
+          EMOJI="✅"
+        else
+          PASSED=false
+          STATUS="FAILED"
+          EMOJI="❌"
+        fi
+
+        # Set outputs
+        echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+        echo "grade=$GRADE" >> "$GITHUB_OUTPUT"
+        echo "passed=$PASSED" >> "$GITHUB_OUTPUT"
+        echo "nodes=$NODES" >> "$GITHUB_OUTPUT"
+        echo "issues=$ISSUES" >> "$GITHUB_OUTPUT"
+        echo "blocking=$BLOCKING" >> "$GITHUB_OUTPUT"
+        echo "risk=$RISK" >> "$GITHUB_OUTPUT"
+        echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+        echo "emoji=$EMOJI" >> "$GITHUB_OUTPUT"
+
+        {
+          echo "categories<<ENDCAT"
+          echo "$CATEGORIES"
+          echo "ENDCAT"
+        } >> "$GITHUB_OUTPUT"
+
+        {
+          echo "report_json<<ENDJSON"
+          echo "$RESULT"
+          echo "ENDJSON"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Post PR comment
+      if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const score = '${{ steps.analyze.outputs.score }}';
+          const grade = '${{ steps.analyze.outputs.grade }}';
+          const nodes = '${{ steps.analyze.outputs.nodes }}';
+          const issues = '${{ steps.analyze.outputs.issues }}';
+          const blocking = '${{ steps.analyze.outputs.blocking }}';
+          const risk = '${{ steps.analyze.outputs.risk }}';
+          const status = '${{ steps.analyze.outputs.status }}';
+          const emoji = '${{ steps.analyze.outputs.emoji }}';
+          const minScore = '${{ inputs.min_score }}';
+          const categories = `${{ steps.analyze.outputs.categories }}`;
+          const figmaUrl = '${{ inputs.figma_url }}';
+
+          const body = `## ${emoji} CanICode Design Analysis — ${status}
+
+          | Metric | Value |
+          |--------|-------|
+          | Score | **${score}%** (${grade}) |
+          | Threshold | ${minScore}% |
+          | Nodes | ${nodes} |
+          | Issues | ${issues} (blocking: ${blocking}, risk: ${risk}) |
+
+          ### Category Scores
+          | Category | Score |
+          |----------|-------|
+          ${categories}
+
+          ---
+          [View in Figma](${figmaUrl}) | Powered by [CanICode](https://github.com/let-sunny/canicode)`.replace(/^          /gm, '');
+
+          // Find existing comment to update
+          const { data: comments } = await github.rest.issues.listComments({
+            ...context.repo,
+            issue_number: context.issue.number,
+          });
+          const existing = comments.find(c =>
+            c.user.type === 'Bot' && c.body.includes('CanICode Design Analysis')
+          );
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              ...context.repo,
+              comment_id: existing.id,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+          }
+
+    - name: Check score threshold
+      if: steps.analyze.outputs.passed == 'false'
+      shell: bash
+      run: |
+        echo "::error::Design score ${{ steps.analyze.outputs.score }}% is below minimum threshold ${{ inputs.min_score }}%"
+        exit 1
