@@ -67,12 +67,13 @@ runs:
 
     - name: Install canicode
       shell: bash
+      env:
+        CANICODE_VERSION: ${{ inputs.version }}
       run: |
-        VERSION="${{ inputs.version }}"
-        if [ "$VERSION" = "latest" ]; then
+        if [ "$CANICODE_VERSION" = "latest" ]; then
           npm install -g canicode
         else
-          npm install -g "canicode@$VERSION"
+          npm install -g "canicode@$CANICODE_VERSION"
         fi
 
     - name: Save fixture from Figma
@@ -84,7 +85,7 @@ runs:
       run: |
         if ! canicode save-fixture "$FIGMA_URL" \
           --output /tmp/canicode-fixture.json \
-          --token "$FIGMA_TOKEN" 2>&1; then
+          --token "$FIGMA_TOKEN"; then
           echo "::error::Failed to fetch Figma design. Check that the URL is correct and the file is publicly accessible."
           if [ "${{ inputs.fail_on_error }}" = "true" ]; then
             exit 1
