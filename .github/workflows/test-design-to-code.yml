@@ -1,0 +1,32 @@
+name: Test Design to Code
+
+on:
+  workflow_dispatch:
+    inputs:
+      figma_url:
+        description: 'Figma URL with node-id'
+        required: true
+        default: 'https://www.figma.com/design/ThsGugAJwoMfPtvpFxwEnj/Untitled?node-id=0-1'
+      min_score:
+        description: 'Minimum score'
+        required: false
+        default: '30'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./actions/design-to-code
+        with:
+          figma_url: ${{ inputs.figma_url }}
+          figma_token: ${{ secrets.FIGMA_TOKEN }}
+          output_dir: generated
+          prompt_file: .github/canicode-prompt.md
+          llm_provider: openai
+          llm_api_key: ${{ secrets.OPENAI_API_KEY }}
+          min_score: ${{ inputs.min_score }}

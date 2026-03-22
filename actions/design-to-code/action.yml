@@ -1,0 +1,210 @@
+name: 'CanICode Design to Code'
+description: 'Analyze a Figma design, generate code with AI, and create a PR with screenshot comparison.'
+author: 'let-sunny'
+
+inputs:
+  figma_url:
+    description: 'Figma URL with node-id'
+    required: true
+  figma_token:
+    description: 'Figma API token'
+    required: true
+  output_dir:
+    description: 'Directory to save generated code (e.g., src/components)'
+    required: true
+  prompt_file:
+    description: 'Path to AI instruction file with project context (stack, conventions, etc.)'
+    required: false
+    default: '.github/canicode-prompt.md'
+  llm_provider:
+    description: 'AI provider: claude | openai | gemini'
+    required: false
+    default: 'claude'
+  llm_api_key:
+    description: 'API key for the chosen LLM provider'
+    required: true
+  min_score:
+    description: 'Minimum canicode score to proceed with code generation (0-100)'
+    required: false
+    default: '60'
+  preset:
+    description: 'Analysis preset: relaxed | dev-friendly | ai-ready | strict'
+    required: false
+    default: 'strict'
+  version:
+    description: 'canicode CLI version'
+    required: false
+    default: 'latest'
+
+outputs:
+  score:
+    description: 'canicode analysis score'
+    value: ${{ steps.gate.outputs.score }}
+  grade:
+    description: 'canicode analysis grade'
+    value: ${{ steps.gate.outputs.grade }}
+  generated_files:
+    description: 'List of generated files'
+    value: ${{ steps.generate.outputs.files }}
+  pr_url:
+    description: 'URL of the created PR'
+    value: ${{ steps.pr.outputs.url }}
+
+runs:
+  using: 'composite'
+  steps:
+    # 1. Score gate — reuse root canicode-action
+    - name: Run canicode score gate
+      id: gate
+      uses: let-sunny/canicode-action@v0.1.0
+      with:
+        figma_url: ${{ inputs.figma_url }}
+        figma_token: ${{ inputs.figma_token }}
+        min_score: ${{ inputs.min_score }}
+        preset: ${{ inputs.preset }}
+        version: ${{ inputs.version }}
+        comment: 'false'
+
+    # 2. Check prompt file exists
+    - name: Check prompt file
+      shell: bash
+      env:
+        PROMPT_FILE: ${{ inputs.prompt_file }}
+      run: |
+        if [ ! -f "$PROMPT_FILE" ]; then
+          echo "::error::Prompt file not found: ${PROMPT_FILE}"
+          echo "Please add this file to your repository with instructions for code generation (stack, conventions, etc.)"
+          exit 1
+        fi
+
+    # 3. Fetch Figma screenshot
+    - name: Fetch Figma screenshot
+      id: screenshot
+      shell: bash
+      env:
+        FIGMA_TOKEN: ${{ inputs.figma_token }}
+        FIGMA_URL: ${{ inputs.figma_url }}
+      run: |
+        FILE_KEY=$(echo "$FIGMA_URL" | sed -n 's|.*\/design\/\([^/]*\)\/.*|\1|p')
+        NODE_ID=$(echo "$FIGMA_URL" | sed -n 's|.*node-id=\([^&]*\).*|\1|p' | tr '-' ':')
+
+        IMG_RESPONSE=$(curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
+          "https://api.figma.com/v1/images/${FILE_KEY}?ids=${NODE_ID}&format=png&scale=2")
+
+        IMG_URL=$(echo "$IMG_RESPONSE" | jq -r ".images[\"${NODE_ID}\"]")
+
+        if [ "$IMG_URL" = "null" ] || [ -z "$IMG_URL" ]; then
+          echo "::warning::Could not fetch Figma screenshot"
+          echo "has_screenshot=false" >> "$GITHUB_OUTPUT"
+        else
+          curl -s -o /tmp/figma-screenshot.png "$IMG_URL"
+          echo "has_screenshot=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    # 4. Save analysis JSON to file (env can't hold multiline reliably)
+    - name: Save analysis to file
+      shell: bash
+      env:
+        ANALYSIS: ${{ steps.gate.outputs.report_json }}
+      run: echo "$ANALYSIS" > /tmp/canicode-analysis.json
+
+    # 5. Install dependencies
+    - name: Install AI SDK and Playwright
+      shell: bash
+      run: |
+        ACTION_DIR="${{ github.action_path }}/actions/design-to-code"
+        cd "$ACTION_DIR"
+        npm install ai @ai-sdk/anthropic @ai-sdk/openai @ai-sdk/google playwright
+        npx playwright install --with-deps chromium
+
+    # 6. Generate code with AI
+    - name: Generate code with AI
+      id: generate
+      shell: bash
+      env:
+        LLM_PROVIDER: ${{ inputs.llm_provider }}
+        LLM_API_KEY: ${{ inputs.llm_api_key }}
+        PROMPT_FILE: ${{ inputs.prompt_file }}
+        OUTPUT_DIR: ${{ inputs.output_dir }}
+        FIXTURE_PATH: /tmp/canicode-fixture.json
+        ANALYSIS_PATH: /tmp/canicode-analysis.json
+        HAS_SCREENSHOT: ${{ steps.screenshot.outputs.has_screenshot }}
+      run: |
+        ACTION_DIR="${{ github.action_path }}/actions/design-to-code"
+        # Set provider-specific API key
+        case "$LLM_PROVIDER" in
+          claude)  export ANTHROPIC_API_KEY="$LLM_API_KEY" ;;
+          openai)  export OPENAI_API_KEY="$LLM_API_KEY" ;;
+          gemini)  export GOOGLE_GENERATIVE_AI_API_KEY="$LLM_API_KEY" ;;
+        esac
+        node "$ACTION_DIR/generate.mjs"
+
+    # 7. Screenshot generated code
+    - name: Capture implementation screenshot
+      id: capture
+      shell: bash
+      env:
+        OUTPUT_DIR: ${{ inputs.output_dir }}
+      run: node "${{ github.action_path }}/actions/design-to-code/capture.mjs"
+
+    # 8. Create PR
+    - name: Create PR
+      id: pr
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        OUTPUT_DIR: ${{ inputs.output_dir }}
+        SCORE: ${{ steps.gate.outputs.score }}
+        GRADE: ${{ steps.gate.outputs.grade }}
+        FIGMA_URL: ${{ inputs.figma_url }}
+        HAS_SCREENSHOT: ${{ steps.screenshot.outputs.has_screenshot }}
+        HAS_CAPTURE: ${{ steps.capture.outputs.has_capture }}
+      run: |
+        BRANCH="design-to-code/$(date +%Y%m%d-%H%M%S)"
+        git checkout -b "$BRANCH"
+
+        git add "$OUTPUT_DIR"
+
+        mkdir -p .github/design-comparison
+        if [ "$HAS_SCREENSHOT" = "true" ]; then
+          cp /tmp/figma-screenshot.png .github/design-comparison/
+          git add .github/design-comparison/figma-screenshot.png
+        fi
+        if [ "$HAS_CAPTURE" = "true" ]; then
+          cp /tmp/implementation-screenshot.png .github/design-comparison/
+          git add .github/design-comparison/implementation-screenshot.png
+        fi
+
+        git -c user.name="github-actions[bot]" \
+            -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "feat: generate code from Figma design (${SCORE}% ${GRADE})"
+        git push origin "$BRANCH"
+
+        # Build PR body
+        cat > /tmp/pr-body.md << EOF
+## Design to Code
+
+**canicode score:** ${SCORE}% (${GRADE})
+**Figma:** [View Design](${FIGMA_URL})
+EOF
+
+        if [ "$HAS_SCREENSHOT" = "true" ] && [ "$HAS_CAPTURE" = "true" ]; then
+          cat >> /tmp/pr-body.md << 'EOF'
+
+### Screenshot Comparison
+
+| Figma (original) | AI (generated) |
+|:---:|:---:|
+| ![Figma](.github/design-comparison/figma-screenshot.png) | ![AI](.github/design-comparison/implementation-screenshot.png) |
+EOF
+        fi
+
+        echo "" >> /tmp/pr-body.md
+        echo "---" >> /tmp/pr-body.md
+        echo "Generated by [CanICode Design to Code](https://github.com/let-sunny/canicode-action)" >> /tmp/pr-body.md
+
+        PR_URL=$(gh pr create \
+          --title "feat: design to code (${SCORE}% ${GRADE})" \
+          --body-file /tmp/pr-body.md)
+
+        echo "url=$PR_URL" >> "$GITHUB_OUTPUT"
