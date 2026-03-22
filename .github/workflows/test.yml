@@ -6,7 +6,7 @@ on:
       figma_url:
         description: 'Figma URL with node-id'
         required: true
-        default: 'https://www.figma.com/design/KVCLAjaqxDqJw8e7H5YgIe/Untitled?node-id=127-2'
+        default: 'https://www.figma.com/design/ThsGugAJwoMfPtvpFxwEnj/Untitled?node-id=0-1&t=h49nRxnSgZKbc4iK-1'
       min_score:
         description: 'Minimum score'
         required: false
