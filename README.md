@@ -93,6 +93,22 @@ On pull requests, the action posts an analysis summary:
 
 Updated on each run — no duplicate comments.
 
+## Roadmap: Design-to-Code Pipeline
+
+Beyond quality gating, we're building a pipeline that automatically generates code from Figma designs using AI.
+
+**The vision:** A designer pastes a Figma URL, and the action analyzes the design, generates code with AI, and creates a PR with a side-by-side screenshot comparison — no developer handoff needed.
+
+```
+Figma Design → canicode analysis → AI code generation → screenshot comparison → PR
+```
+
+The prototype action is available at [`actions/design-to-code`](./actions/design-to-code). You can see a working example here:
+
+> [**feat: design to code (82% B)** — #5](https://github.com/let-sunny/canicode-action/pull/5)
+
+The AI-generated code isn't pixel-perfect yet, but we're improving accuracy by combining raw Figma node data with screenshot references.
+
 ## License
 
 MIT
