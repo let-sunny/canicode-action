@@ -69,12 +69,7 @@ runs:
       shell: bash
       env:
         CANICODE_VERSION: ${{ inputs.version }}
-      run: |
-        if [ "$CANICODE_VERSION" = "latest" ]; then
-          npm install -g canicode
-        else
-          npm install -g "canicode@$CANICODE_VERSION"
-        fi
+      run: npm install -g "canicode@$CANICODE_VERSION"
 
     - name: Save fixture from Figma
       id: fixture
