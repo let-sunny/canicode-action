@@ -77,9 +77,9 @@ runs:
           exit 1
         fi
 
-    # 3. Fetch Figma screenshot
-    - name: Fetch Figma screenshot
-      id: screenshot
+    # 3. Fetch Figma design data (screenshot + full node data with styles)
+    - name: Fetch Figma design data
+      id: figma
       shell: bash
       env:
         FIGMA_TOKEN: ${{ inputs.figma_token }}
@@ -88,8 +88,12 @@ runs:
         FILE_KEY=$(echo "$FIGMA_URL" | sed -n 's|.*\/design\/\([^/]*\)\/.*|\1|p')
         NODE_ID=$(echo "$FIGMA_URL" | sed -n 's|.*node-id=\([^&]*\).*|\1|p' | tr '-' ':')
 
+        echo "file_key=$FILE_KEY" >> "$GITHUB_OUTPUT"
+        echo "node_id=$NODE_ID" >> "$GITHUB_OUTPUT"
+
+        # Fetch high-res screenshot
         IMG_RESPONSE=$(curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
-          "https://api.figma.com/v1/images/${FILE_KEY}?ids=${NODE_ID}&format=png&scale=2")
+          "https://api.figma.com/v1/images/${FILE_KEY}?ids=${NODE_ID}&format=png&scale=4")
 
         IMG_URL=$(echo "$IMG_RESPONSE" | jq -r ".images[\"${NODE_ID}\"]")
 
@@ -100,6 +104,18 @@ runs:
           curl -s -o /tmp/figma-screenshot.png "$IMG_URL"
           echo "has_screenshot=true" >> "$GITHUB_OUTPUT"
         fi
+
+        # Fetch full node data with styles (geometry=paths for vectors, plugin_data for tokens)
+        curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
+          "https://api.figma.com/v1/files/${FILE_KEY}/nodes?ids=${NODE_ID}&geometry=paths" \
+          -o /tmp/figma-nodes.json
+
+        # Fetch file styles (color/text/effect styles)
+        curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
+          "https://api.figma.com/v1/files/${FILE_KEY}/styles" \
+          -o /tmp/figma-styles.json
+
+        echo "Figma data saved: nodes=$(jq '.nodes | length' /tmp/figma-nodes.json), styles=$(jq '.meta.styles | length' /tmp/figma-styles.json)"
 
     # 4. Save analysis JSON to file (env can't hold multiline reliably)
     - name: Save analysis to file
@@ -126,9 +142,10 @@ runs:
         LLM_API_KEY: ${{ inputs.llm_api_key }}
         PROMPT_FILE: ${{ inputs.prompt_file }}
         OUTPUT_DIR: ${{ inputs.output_dir }}
-        FIXTURE_PATH: /tmp/canicode-fixture.json
+        FIGMA_NODES_PATH: /tmp/figma-nodes.json
+        FIGMA_STYLES_PATH: /tmp/figma-styles.json
         ANALYSIS_PATH: /tmp/canicode-analysis.json
-        HAS_SCREENSHOT: ${{ steps.screenshot.outputs.has_screenshot }}
+        HAS_SCREENSHOT: ${{ steps.figma.outputs.has_screenshot }}
       run: |
         ACTION_DIR="${{ github.action_path }}"
         # Set provider-specific API key
@@ -157,7 +174,7 @@ runs:
         SCORE: ${{ steps.gate.outputs.score }}
         GRADE: ${{ steps.gate.outputs.grade }}
         FIGMA_URL: ${{ inputs.figma_url }}
-        HAS_SCREENSHOT: ${{ steps.screenshot.outputs.has_screenshot }}
+        HAS_SCREENSHOT: ${{ steps.figma.outputs.has_screenshot }}
         HAS_CAPTURE: ${{ steps.capture.outputs.has_capture }}
       run: |
         BRANCH="design-to-code/$(date +%Y%m%d-%H%M%S)"

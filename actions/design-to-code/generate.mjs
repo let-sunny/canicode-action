@@ -26,19 +26,21 @@ async function getModel(provider) {
 const provider = process.env.LLM_PROVIDER || "claude";
 const promptFile = process.env.PROMPT_FILE;
 const outputDir = process.env.OUTPUT_DIR;
-const fixturePath = process.env.FIXTURE_PATH;
+const figmaNodesPath = process.env.FIGMA_NODES_PATH;
+const figmaStylesPath = process.env.FIGMA_STYLES_PATH;
 const analysisPath = process.env.ANALYSIS_PATH;
 const hasScreenshot = process.env.HAS_SCREENSHOT === "true";
 
 // Read files
 const promptContent = readFileSync(promptFile, "utf-8");
-const fixtureContent = readFileSync(fixturePath, "utf-8");
+const figmaNodes = readFileSync(figmaNodesPath, "utf-8");
+const figmaStyles = readFileSync(figmaStylesPath, "utf-8");
 const analysisContent = readFileSync(analysisPath, "utf-8");
 
 // Build message parts
 const parts = [];
 
-// Screenshot if available
+// Screenshot if available (high-res)
 if (hasScreenshot) {
   const screenshot = readFileSync("/tmp/figma-screenshot.png");
   parts.push({
@@ -47,27 +49,42 @@ if (hasScreenshot) {
   });
 }
 
-// Text content
+// Text content — Figma raw data has full style info (colors, fonts, spacing, effects)
 parts.push({
   type: "text",
   text: [
     "# Instructions",
     promptContent,
     "",
-    "# Figma Design Data (node tree)",
+    "# Figma Design Data (full node tree with styles)",
+    "This is the raw Figma API response. It contains exact colors (fills), fonts (style),",
+    "spacing (paddingLeft/Right/Top/Bottom, itemSpacing), effects (shadows, blur),",
+    "layout (layoutMode, constraints), and all visual properties.",
+    "Use these exact values to produce pixel-accurate code.",
+    "",
     "```json",
-    fixtureContent.length > 100_000
-      ? fixtureContent.slice(0, 100_000) + "\n... (truncated)"
-      : fixtureContent,
+    figmaNodes.length > 200_000
+      ? figmaNodes.slice(0, 200_000) + "\n... (truncated)"
+      : figmaNodes,
+    "```",
+    "",
+    "# Figma Styles (design tokens)",
+    "```json",
+    figmaStyles,
     "```",
     "",
     "# Design Analysis (canicode)",
+    "Issues found in the design that may affect implementation:",
     "```json",
     analysisContent,
     "```",
     "",
     "# Task",
-    "Generate the code based on the Figma design above.",
+    "Generate code that reproduces this Figma design as accurately as possible.",
+    "- Match exact colors, fonts, spacing, border-radius, and shadows from the Figma data",
+    "- Use the screenshot as visual reference for layout and proportions",
+    "- If the design has auto-layout, replicate it with flexbox/grid",
+    "",
     "Output each file as a code block with the filename as a comment on the first line:",
     "```",
     "// filename: ComponentName.tsx",
@@ -79,6 +96,9 @@ parts.push({
 });
 
 console.log(`Generating code with ${provider}...`);
+console.log(`  Figma nodes: ${Math.round(figmaNodes.length / 1024)}KB`);
+console.log(`  Figma styles: ${Math.round(figmaStyles.length / 1024)}KB`);
+console.log(`  Screenshot: ${hasScreenshot ? "yes" : "no"}`);
 
 const model = await getModel(provider);
 const { text } = await generateText({
