@@ -1,0 +1,104 @@
+<!-- filename: index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System</title>
+    <style>
+        :root {
+            --primary-color: #121212;
+            --text-color: #000000;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fff;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            margin: 0 20px;
+        }
+
+        .column h3 {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .column div {
+            margin-bottom: 5px;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .social-icons img {
+            width: 24px;
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="column">
+            <img src="logo.png" alt="Logo" style="width:40px; height:40px;">
+            <div class="social-icons">
+                <img src="x-icon.png" alt="X">
+                <img src="instagram-icon.png" alt="Instagram">
+                <img src="youtube-icon.png" alt="YouTube">
+                <img src="linkedin-icon.png" alt="LinkedIn">
+            </div>
+        </div>
+        <div class="column">
+            <h3>Use cases</h3>
+            <div>UI design</div>
+            <div>UX design</div>
+            <div>Wireframing</div>
+            <div>Diagramming</div>
+            <div>Brainstorming</div>
+            <div>Online whiteboard</div>
+            <div>Team collaboration</div>
+        </div>
+        <div class="column">
+            <h3>Explore</h3>
+            <div>Design</div>
+            <div>Prototyping</div>
+            <div>Development features</div>
+            <div>Design systems</div>
+            <div>Collaboration features</div>
+            <div>Design process</div>
+            <div>FigJam</div>
+        </div>
+        <div class="column">
+            <h3>Resources</h3>
+            <div>Blog</div>
+            <div>Best practices</div>
+            <div>Colors</div>
+            <div>Color wheel</div>
+            <div>Support</div>
+            <div>Developers</div>
+            <div>Resource library</div>
+        </div>
+    </div>
+</body>
+</html>
