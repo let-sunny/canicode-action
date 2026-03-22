@@ -1,0 +1,35 @@
+name: Test Action
+
+on:
+  workflow_dispatch:
+    inputs:
+      figma_url:
+        description: 'Figma URL with node-id'
+        required: true
+        default: 'https://www.figma.com/design/KVCLAjaqxDqJw8e7H5YgIe/Untitled?node-id=127-2'
+      min_score:
+        description: 'Minimum score'
+        required: false
+        default: '50'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./
+        id: canicode
+        with:
+          figma_url: ${{ inputs.figma_url }}
+          figma_token: ${{ secrets.FIGMA_TOKEN }}
+          min_score: ${{ inputs.min_score }}
+          comment: 'false'
+
+      - name: Print results
+        run: |
+          echo "Score: ${{ steps.canicode.outputs.score }}%"
+          echo "Grade: ${{ steps.canicode.outputs.grade }}"
+          echo "Passed: ${{ steps.canicode.outputs.passed }}"
