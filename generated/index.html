@@ -1,0 +1,93 @@
+<!-- filename: index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System</title>
+    <style>
+        :root {
+            --bg-color: #fff;
+            --text-color: #000;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 20px;
+        }
+        .column {
+            flex: 1;
+            min-width: 250px;
+            margin: 10px;
+        }
+        .column h3 {
+            margin-top: 0;
+        }
+        .socials {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .socials img {
+            width: 24px;
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="column">
+            <h3>Use cases</h3>
+            <ul>
+                <li>UI design</li>
+                <li>UX design</li>
+                <li>Wireframing</li>
+                <li>Diagramming</li>
+                <li>Brainstorming</li>
+                <li>Online whiteboard</li>
+                <li>Team collaboration</li>
+            </ul>
+        </div>
+        <div class="column">
+            <h3>Explore</h3>
+            <ul>
+                <li>Design</li>
+                <li>Prototyping</li>
+                <li>Development features</li>
+                <li>Design systems</li>
+                <li>Collaboration features</li>
+                <li>Design process</li>
+                <li>FigJam</li>
+            </ul>
+        </div>
+        <div class="column">
+            <h3>Resources</h3>
+            <ul>
+                <li>Blog</li>
+                <li>Best practices</li>
+                <li>Colors</li>
+                <li>Color wheel</li>
+                <li>Support</li>
+                <li>Developers</li>
+                <li>Resource library</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="socials">
+        <img src="x-logo.svg" alt="x">
+        <img src="instagram-logo.svg" alt="Instagram">
+        <img src="youtube-logo.svg" alt="YouTube">
+        <img src="linkedin-logo.svg" alt="LinkedIn">
+    </div>
+
+</body>
+</html>
