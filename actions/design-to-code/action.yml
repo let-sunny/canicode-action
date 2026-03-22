@@ -189,6 +189,9 @@ runs:
           echo "Figma: ${FIGMA_URL}"
         } > /tmp/pr-body.md
 
+        REPO="${{ github.repository }}"
+        RAW_BASE="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
+
         if [ "$HAS_SCREENSHOT" = "true" ] && [ "$HAS_CAPTURE" = "true" ]; then
           {
             echo ""
@@ -196,7 +199,7 @@ runs:
             echo ""
             echo "| Figma (original) | AI (generated) |"
             echo "|:---:|:---:|"
-            echo "| ![Figma](.github/design-comparison/figma-screenshot.png) | ![AI](.github/design-comparison/implementation-screenshot.png) |"
+            echo "| ![Figma](${RAW_BASE}/.github/design-comparison/figma-screenshot.png) | ![AI](${RAW_BASE}/.github/design-comparison/implementation-screenshot.png) |"
           } >> /tmp/pr-body.md
         fi
 
