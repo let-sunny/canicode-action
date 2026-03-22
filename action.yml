@@ -19,7 +19,7 @@ inputs:
   preset:
     description: 'Analysis preset: relaxed | dev-friendly | ai-ready | strict'
     required: false
-    default: 'dev-friendly'
+    default: 'strict'
   comment:
     description: 'Post analysis results as a PR comment (true/false)'
     required: false
