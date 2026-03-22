@@ -1,8 +1,6 @@
 # CanICode Action
 
-> Like Lighthouse CI, but for Figma design quality.
-
-Analyze Figma designs for development-readiness and enforce quality gates in your CI pipeline.
+Figma design quality gate for CI. Analyze designs and enforce score thresholds before merging.
 
 ## Usage
 
@@ -45,7 +43,7 @@ jobs:
 
 ## PR Comment
 
-When triggered on a pull request, the action posts a comment like:
+On pull requests, the action posts an analysis summary:
 
 > ## ✅ CanICode Design Analysis — PASSED
 >
@@ -53,19 +51,14 @@ When triggered on a pull request, the action posts a comment like:
 > |--------|-------|
 > | Score | **78%** (B) |
 > | Threshold | 70% |
-> | Nodes | 156 |
-> | Issues | 23 (blocking: 0, risk: 5) |
+>
+> | Category | Score |
+> |----------|-------|
+> | layout | 85% |
+> | token | 72% |
+> | naming | 68% |
 
-The comment is updated on subsequent runs (no duplicates).
-
-## Presets
-
-| Preset | Description |
-|--------|-------------|
-| `relaxed` | Lenient scoring, fewer rules |
-| `dev-friendly` | Balanced (default) |
-| `ai-ready` | Stricter, optimized for AI code generation |
-| `strict` | Maximum strictness |
+Updated on each run — no duplicate comments.
 
 ## License
 

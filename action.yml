@@ -1,5 +1,5 @@
-name: 'CanICode Score Gate'
-description: 'Analyze Figma designs for development-readiness and fail if score is below threshold. Like Lighthouse CI, but for design quality.'
+name: 'CanICode Action'
+description: 'Figma design quality gate for CI. Analyze designs and enforce score thresholds before merging.'
 author: 'let-sunny'
 branding:
   icon: 'check-circle'
