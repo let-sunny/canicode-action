@@ -1,0 +1,123 @@
+<!-- filename: index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Layout</title>
+    <style>
+        :root {
+            --background-color: #f9f9f9;
+            --text-color: #2c2c2c;
+            --border-color: #d7d7d7;
+            --button-color: #2f2f2f;
+            --input-background: #ffffff;
+            --input-placeholder-color: #b2b2b2;
+        }
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--background-color);
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            width: 90%;
+            max-width: 440px;
+        }
+        .title {
+            text-align: center;
+            color: var(--text-color);
+            margin: 0;
+            font-size: 48px;
+            line-height: 57.6px;
+            font-weight: 700;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-color);
+            margin: 0;
+            font-size: 32px;
+            line-height: 38.4px;
+            font-weight: 400;
+        }
+        .form {
+            padding: 24px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 400;
+        }
+        input, textarea {
+            width: calc(100% - 32px);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-background);
+            color: var(--text-color);
+            font-size: 16px;
+        }
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--input-placeholder-color);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: var(--button-color);
+            color: #fff;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .submit-btn:hover {
+            background-color: #1e1e1e;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="title">Title</h1>
+    <h2 class="subtitle">Subtitle</h2>
+    <form class="form">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="Value">
+        </div>
+        <div class="form-group">
+            <label for="surname">Surname</label>
+            <input type="text" id="surname" placeholder="Value">
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="Value">
+        </div>
+        <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" placeholder="Value"></textarea>
+        </div>
+        <button type="submit" class="submit-btn">Submit</button>
+    </form>
+</div>
+
+</body>
+</html>
