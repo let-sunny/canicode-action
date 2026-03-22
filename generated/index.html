@@ -1,0 +1,125 @@
+<!-- filename: index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design to Code</title>
+    <style>
+        :root {
+            --text-color: #1E1E1E;
+            --background-color: #FFFFFF;
+            --border-color: #D9D9D9;
+            --font-family: 'Inter', sans-serif;
+            --font-size: 16px;
+            --font-weight-regular: 400;
+            --font-weight-bold: 600;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .footer {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            padding: 32px;
+            border-top: 1px solid var(--border-color);
+            width: 1200px;
+            box-sizing: border-box;
+        }
+
+        .footer section {
+            flex: 1;
+            min-width: 240px;
+            margin-right: 16px;
+            box-sizing: border-box;
+            color: var(--text-color);
+        }
+
+        .footer h2 {
+            font-size: var(--font-size);
+            font-weight: var(--font-weight-bold);
+            margin: 0 0 16px 0;
+        }
+
+        .footer ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .footer li {
+            font-size: var(--font-size);
+            font-weight: var(--font-weight-regular);
+            line-height: 1.4;
+            margin-bottom: 12px;
+            margin-left: 0;
+        }
+
+        .footer-icons {
+            display: flex;
+            align-items: center;
+        }
+
+        .footer-icons img {
+            width: 24px;
+            height: 24px;
+            margin-right: 16px;
+        }
+    </style>
+</head>
+<body>
+    <footer class="footer">
+        <div>
+            <div class="footer-icons">
+                <img src="x-logo.svg" alt="X Logo">
+                <img src="instagram-logo.svg" alt="Instagram Logo">
+                <img src="youtube-logo.svg" alt="YouTube Logo">
+                <img src="linkedin-logo.svg" alt="LinkedIn Logo">
+            </div>
+        </div>
+        <section>
+            <h2>Use cases</h2>
+            <ul>
+                <li>UI design</li>
+                <li>UX design</li>
+                <li>Wireframing</li>
+                <li>Diagramming</li>
+                <li>Brainstorming</li>
+                <li>Online whiteboard</li>
+                <li>Team collaboration</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Explore</h2>
+            <ul>
+                <li>Design</li>
+                <li>Prototyping</li>
+                <li>Development features</li>
+                <li>Design systems</li>
+                <li>Collaboration features</li>
+                <li>Design process</li>
+                <li>FigJam</li>
+            </ul>
+        </section>
+        <section>
+            <h2>Resources</h2>
+            <ul>
+                <li>Blog</li>
+                <li>Best practices</li>
+                <li>Colors</li>
+                <li>Color wheel</li>
+                <li>Support</li>
+                <li>Developers</li>
+                <li>Resource library</li>
+            </ul>
+        </section>
+    </footer>
+</body>
+</html>
