@@ -1,0 +1,3 @@
+- Used system font "Inter" fallback: -apple-system, BlinkMacSystemFont, sans-serif (font not embedded in data)
+- Set body margin and padding to 0 and box-sizing to border-box (not specified in Figma data)
+- Positioned drag element with absolute positioning at bottom right of textarea (position not explicitly specified in data)

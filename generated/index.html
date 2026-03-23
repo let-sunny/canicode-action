@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Form</title>
+    <style>
+        :root {
+            --color-f5f5f5: #F5F5F5;
+            --color-2c2c2c: #2C2C2C;
+            --color-ffffff: #FFFFFF;
+            --color-d9d9d9: #D9D9D9;
+            --color-1e1e1e: #1E1E1E;
+            --color-b3b3b3: #B3B3B3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .hero-form {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            justify-content: center;
+            align-items: center;
+            padding: 160px 24px 160px 24px;
+            width: 375px;
+            height: 960px;
+            background: var(--color-f5f5f5);
+        }
+
+        .text-content-title {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            width: 117px;
+            height: 104px;
+        }
+
+        .title {
+            width: 117px;
+            height: 58px;
+            background: var(--color-2c2c2c);
+            font-family: "Inter";
+            font-weight: 700;
+            font-size: 48px;
+            line-height: 57.60000228881836px;
+            letter-spacing: -0.96px;
+            color: var(--color-2c2c2c);
+        }
+
+        .subtitle {
+            width: 117px;
+            height: 38px;
+            background: var(--color-2c2c2c);
+            font-family: "Inter";
+            font-weight: 400;
+            font-size: 32px;
+            line-height: 38.400001525878906px;
+            color: var(--color-2c2c2c);
+        }
+
+        .form-contact {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 24px 24px 24px 24px;
+            width: 327px;
+            height: 504px;
+            background: var(--color-ffffff);
+            border: 1px solid var(--color-d9d9d9);
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 279px;
+            height: 70px;
+        }
+
+        .textarea-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 279px;
+            height: 110px;
+        }
+
+        .label {
+            width: 279px;
+            height: 22px;
+            background: var(--color-1e1e1e);
+            font-family: "Inter";
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 22.399999618530273px;
+            color: var(--color-1e1e1e);
+        }
+
+        .input {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 12px 16px 12px 16px;
+            width: 279px;
+            height: 40px;
+            background: var(--color-ffffff);
+            border: 1px solid var(--color-d9d9d9);
+        }
+
+        .textarea {
+            display: flex;
+            flex-direction: row;
+            padding: 12px 16px 12px 16px;
+            width: 279px;
+            height: 80px;
+            background: var(--color-ffffff);
+            border: 1px solid var(--color-d9d9d9);
+            position: relative;
+        }
+
+        .value {
+            width: 247px;
+            height: 16px;
+            background: var(--color-b3b3b3);
+            font-family: "Inter";
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 16px;
+            color: var(--color-b3b3b3);
+        }
+
+        .textarea .value {
+            height: 22px;
+            line-height: 22.399999618530273px;
+        }
+
+        .drag {
+            width: 7px;
+            height: 7px;
+            border: 1px solid var(--color-b3b3b3);
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            align-items: center;
+            width: 279px;
+            height: 40px;
+        }
+
+        .button {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            padding: 12px 12px 12px 12px;
+            width: 279px;
+            height: 40px;
+            background: var(--color-2c2c2c);
+            border: 1px solid var(--color-2c2c2c);
+        }
+
+        .button-text {
+            width: 53px;
+            height: 16px;
+            background: var(--color-f5f5f5);
+            font-family: "Inter";
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 16px;
+            color: var(--color-f5f5f5);
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-form">
+        <div class="text-content-title">
+            <div class="title">Title</div>
+            <div class="subtitle">Subtitle</div>
+        </div>
+        <div class="form-contact">
+            <div class="input-field">
+                <div class="label">Name</div>
+                <div class="input">
+                    <div class="value">Value</div>
+                </div>
+            </div>
+            <div class="input-field">
+                <div class="label">Surname</div>
+                <div class="input">
+                    <div class="value">Value</div>
+                </div>
+            </div>
+            <div class="input-field">
+                <div class="label">Email</div>
+                <div class="input">
+                    <div class="value">Value</div>
+                </div>
+            </div>
+            <div class="textarea-field">
+                <div class="label">Message</div>
+                <div class="textarea">
+                    <div class="value">Value</div>
+                    <div class="drag"></div>
+                </div>
+            </div>
+            <div class="button-group">
+                <div class="button">
+                    <div class="button-text">Submit</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
