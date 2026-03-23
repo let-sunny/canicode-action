@@ -162,20 +162,32 @@ runs:
           exit 0
         fi
 
-        # Install Playwright for visual-compare
+        # Install Playwright globally so canicode can find it
+        npm install -g playwright
         npx playwright install --with-deps chromium
 
-        # Run visual compare
-        RESULT=$(npx canicode visual-compare "$HTML_FILE" \
+        # Run visual compare (print output for debugging, then parse)
+        echo "Running visual-compare on $HTML_FILE..."
+        npx canicode visual-compare "$HTML_FILE" \
           --figma-url "$FIGMA_URL" \
           --token "$FIGMA_TOKEN" \
-          --output /tmp/canicode-visual-compare 2>&1)
+          --output /tmp/canicode-visual-compare \
+          > /tmp/visual-compare-output.txt 2>&1 || true
+
+        cat /tmp/visual-compare-output.txt
 
         # Extract similarity from JSON output
-        SIMILARITY=$(echo "$RESULT" | sed -n '/^{/,/^}/p' | jq -r '.similarity // -1')
+        SIMILARITY=$(sed -n '/^{/,/^}/p' /tmp/visual-compare-output.txt | jq -r '.similarity // -1')
+        SIMILARITY=${SIMILARITY:--1}
         echo "similarity=$SIMILARITY" >> "$GITHUB_OUTPUT"
-        echo "has_compare=true" >> "$GITHUB_OUTPUT"
-        echo "Visual similarity: ${SIMILARITY}%"
+
+        if [ "$SIMILARITY" != "-1" ]; then
+          echo "has_compare=true" >> "$GITHUB_OUTPUT"
+          echo "Visual similarity: ${SIMILARITY}%"
+        else
+          echo "has_compare=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Visual compare failed — see output above"
+        fi
 
     # 8. Create PR
     - name: Create PR
