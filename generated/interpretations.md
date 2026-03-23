@@ -1,0 +1,5 @@
+- Used system font "Inter" fallback: -apple-system, BlinkMacSystemFont, sans-serif (font not embedded in data)
+- Set body margin to 0 and padding to 0 via universal selector (not specified in Figma data)
+- Set box-sizing: border-box on all elements (not specified in Figma data)
+- Positioned drag element absolutely within textarea (positioning not specified in Figma data, only dimensions)
+- Added CSS variables for colors to avoid repetition (implementation choice for cleaner code)
