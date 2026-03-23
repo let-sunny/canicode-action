@@ -31,14 +31,21 @@ const figmaStylesPath = process.env.FIGMA_STYLES_PATH;
 const analysisPath = process.env.ANALYSIS_PATH;
 const hasScreenshot = process.env.HAS_SCREENSHOT === "true";
 
+// Read standard prompt from canicode CLI + user's project prompt
+import { execSync } from "child_process";
+let standardPrompt = "";
+try {
+  standardPrompt = execSync("npx canicode prompt", { encoding: "utf-8" }).trim();
+} catch { /* canicode prompt not available, continue without */ }
+
 // Read files
-const promptContent = readFileSync(promptFile, "utf-8");
+const userPrompt = readFileSync(promptFile, "utf-8");
+const promptContent = standardPrompt ? `${standardPrompt}\n\n---\n\n# Project-Specific Instructions\n${userPrompt}` : userPrompt;
 const figmaNodes = readFileSync(figmaNodesPath, "utf-8");
 const figmaStyles = readFileSync(figmaStylesPath, "utf-8");
 const analysisContent = readFileSync(analysisPath, "utf-8");
 
 // Generate design tree summary
-import { execSync } from "child_process";
 const scriptDir = dirname(new URL(import.meta.url).pathname);
 try {
   execSync(`node ${join(scriptDir, "extract-design-summary.mjs")} "${figmaNodesPath}" /tmp/design-summary.txt`, { stdio: "inherit" });
