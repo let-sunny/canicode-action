@@ -87,9 +87,9 @@ function renderNode(node, indent) {
   if (node.layoutSizingHorizontal === "FILL") styles.push("width: 100%");
   if (node.layoutSizingVertical === "FILL") styles.push("height: 100%");
 
-  // Fill
+  // Fill — for TEXT nodes, fill is text color, not background
   const fill = getFill(node);
-  if (fill) styles.push(`background: ${fill}`);
+  if (fill && node.type !== "TEXT") styles.push(`background: ${fill}`);
 
   // Border
   const stroke = getStroke(node);
