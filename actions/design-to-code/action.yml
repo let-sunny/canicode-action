@@ -258,6 +258,21 @@ runs:
           } >> /tmp/pr-body.md
         fi
 
+        # Add interpretations section
+        if [ -f "${OUTPUT_DIR}/interpretations.md" ]; then
+          INTERP=$(cat "${OUTPUT_DIR}/interpretations.md")
+          if [ "$INTERP" != "none" ]; then
+            {
+              echo ""
+              echo "### AI Interpretations (not in Figma data)"
+              echo ""
+              echo "The AI had to guess these values because they were missing from the design data:"
+              echo ""
+              echo "$INTERP"
+            } >> /tmp/pr-body.md
+          fi
+        fi
+
         {
           echo ""
           echo "---"

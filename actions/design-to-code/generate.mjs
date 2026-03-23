@@ -26,7 +26,7 @@ async function getModel(provider) {
 const provider = process.env.LLM_PROVIDER || "claude";
 const promptFile = process.env.PROMPT_FILE;
 const outputDir = process.env.OUTPUT_DIR;
-const figmaNodesPath = process.env.FIGMA_NODES_PATH;
+const figmaNodesPath = process.env.FIGMA_NODES_PATH || "/tmp/canicode-fixture.json";
 const figmaStylesPath = process.env.FIGMA_STYLES_PATH;
 const analysisPath = process.env.ANALYSIS_PATH;
 const hasScreenshot = process.env.HAS_SCREENSHOT === "true";
@@ -40,7 +40,7 @@ const analysisContent = readFileSync(analysisPath, "utf-8");
 // Build message parts
 const parts = [];
 
-// Screenshot if available (high-res)
+// Screenshot if available
 if (hasScreenshot) {
   const screenshot = readFileSync("/tmp/figma-screenshot.png");
   parts.push({
@@ -54,7 +54,6 @@ let designWidth = 0;
 let designHeight = 0;
 try {
   const data = JSON.parse(figmaNodes);
-  // Support both fixture format ({document: {absoluteBoundingBox}}) and nodes API format ({nodes: {id: {document}}})
   const bbox = data.document?.absoluteBoundingBox
     ?? Object.values(data.nodes ?? {})[0]?.document?.absoluteBoundingBox;
   if (bbox) {
@@ -65,7 +64,7 @@ try {
 
 console.log(`  Design size: ${designWidth}x${designHeight}`);
 
-// Text content — Figma raw data has full style info (colors, fonts, spacing, effects)
+// Text content
 parts.push({
   type: "text",
   text: [
@@ -73,15 +72,12 @@ parts.push({
     promptContent,
     "",
     `# Design Dimensions: ${designWidth}px x ${designHeight}px`,
-    "CRITICAL: The output HTML must render at exactly this size.",
-    `Set the root container to width: ${designWidth}px and min-height: ${designHeight}px.`,
-    "Do NOT use 100vw or 100% width — use the exact pixel value.",
+    `The root element must be exactly ${designWidth}px wide and ${designHeight}px tall.`,
+    "These values come from the Figma data. Do not change them.",
     "",
-    "# Figma Design Data (full node tree with styles)",
-    "This is the raw Figma API response. It contains exact colors (fills), fonts (style),",
-    "spacing (paddingLeft/Right/Top/Bottom, itemSpacing), effects (shadows, blur),",
-    "layout (layoutMode, constraints), and all visual properties.",
-    "Use these exact values to produce pixel-accurate code.",
+    "# Figma Design Data",
+    "This is the exact Figma node tree. Every value here is intentional.",
+    "Reproduce each value exactly: colors, fonts, spacing, sizes, layout.",
     "",
     "```json",
     figmaNodes.length > 200_000
@@ -95,24 +91,15 @@ parts.push({
     "```",
     "",
     "# Design Analysis (canicode)",
-    "Issues found in the design that may affect implementation:",
     "```json",
     analysisContent,
     "```",
     "",
     "# Task",
-    "Generate code that reproduces this Figma design as accurately as possible.",
-    "- Match exact colors, fonts, spacing, border-radius, and shadows from the Figma data",
-    "- Use the screenshot as visual reference for layout and proportions",
-    "- If the design has auto-layout, replicate it with flexbox/grid",
+    "Reproduce this Figma design as HTML+CSS. Do not interpret or improve — just reproduce.",
+    "The screenshot is your visual reference. The data is your source of truth.",
     "",
-    "Output each file as a code block with the filename as a comment on the first line:",
-    "```",
-    "// filename: ComponentName.tsx",
-    "... code here ...",
-    "```",
-    "",
-    "Make sure the main component can render as a standalone HTML page for screenshot comparison.",
+    "Output the code block first, then the interpretations list (see Instructions).",
   ].join("\n"),
 });
 
@@ -149,6 +136,13 @@ if (files.length === 0) {
   }
 }
 
+// Parse interpretations
+let interpretations = "none";
+const interpMatch = text.match(/\/\/ interpretations:([\s\S]*?)(?:```|$)/);
+if (interpMatch) {
+  interpretations = interpMatch[1].trim();
+}
+
 // Write files
 mkdirSync(outputDir, { recursive: true });
 const writtenFiles = [];
@@ -161,10 +155,16 @@ for (const { filename, code } of files) {
   console.log(`  Written: ${filePath}`);
 }
 
-// Set output
+// Write interpretations file
+writeFileSync(join(outputDir, "interpretations.md"), interpretations + "\n", "utf-8");
+console.log(`  Interpretations: ${interpretations === "none" ? "none" : interpretations.split("\n").length + " items"}`);
+
+// Set outputs
 const ghOutput = process.env.GITHUB_OUTPUT;
 if (ghOutput) {
   appendFileSync(ghOutput, `files=${writtenFiles.join(",")}\n`);
+  // Use heredoc for multiline interpretations
+  appendFileSync(ghOutput, `interpretations<<ENDINTERP\n${interpretations}\nENDINTERP\n`);
 }
 
 console.log(`Generated ${writtenFiles.length} file(s)`);

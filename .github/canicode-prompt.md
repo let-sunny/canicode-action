@@ -8,20 +8,44 @@
 - Semantic HTML elements
 - CSS variables for colors
 - Flexbox / Grid for layout
-- Mobile-friendly viewport
 
-## CRITICAL: Pixel-Perfect Accuracy
-Your goal is to produce output that is visually IDENTICAL to the Figma design.
+## CRITICAL: Do NOT Interpret. Reproduce Exactly.
 
-- Extract exact hex color values from the Figma data — do NOT approximate
-- Use exact font-family, font-size, font-weight, line-height, letter-spacing from the data
-- Match padding, margin, gap values to the exact pixel
-- Replicate border-radius, box-shadow, opacity exactly as specified
-- Preserve the auto-layout direction (flex-direction) and alignment
-- If the screenshot and data conflict, trust the data values
-- Compare your output mentally against the screenshot — every detail matters
+Every pixel in the Figma file is intentional. A designer made each decision deliberately.
+Your job is to translate the Figma data to HTML+CSS — nothing more.
+
+### Rules
+- Do NOT add any value that isn't in the Figma data (no extra padding, margin, gap, transition, hover effect)
+- Do NOT change any value from the Figma data (if it says 160px padding, use 160px)
+- Do NOT "improve" the design — if something looks wrong, reproduce it anyway
+- Do NOT add responsive behavior unless the Figma data explicitly shows it
+- Do NOT use min-height or min-width — use exact height and width from the data
+- Do NOT add overflow: auto or scroll unless specified
+
+### If data is missing
+When the Figma data does not specify a value, you MUST list it as an interpretation (see Output section below).
+Do not silently guess — always declare what you assumed.
 
 ## Output
-- Single `index.html` file with inline `<style>`
-- Must render correctly when opened as a local file
-- Result should be visually indistinguishable from the Figma screenshot when placed side by side
+
+### 1. Code
+Output as a code block with filename:
+```html
+// filename: index.html
+<!DOCTYPE html>
+...
+```
+
+### 2. Interpretations
+After the code block, output a section listing every value you had to guess or assume:
+```
+// interpretations:
+- Used system font "Inter" fallback: -apple-system, BlinkMacSystemFont (font not embedded in data)
+- Set body margin to 0 (not specified in Figma data)
+- Assumed border-radius 8px for input fields (visible in screenshot but not in node data)
+```
+
+If you did not interpret anything, write:
+```
+// interpretations: none
+```
