@@ -103,6 +103,20 @@ runs:
 
         echo "Figma data saved: nodes=$(jq '.nodes | length' /tmp/figma-nodes.json), styles=$(jq '.meta.styles | length' /tmp/figma-styles.json)"
 
+        # Fetch screenshot for AI context
+        IMG_RESPONSE=$(curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
+          "https://api.figma.com/v1/images/${FILE_KEY}?ids=${NODE_ID}&format=png&scale=2")
+        IMG_URL=$(echo "$IMG_RESPONSE" | jq -r ".images[\"${NODE_ID}\"]")
+
+        if [ "$IMG_URL" != "null" ] && [ -n "$IMG_URL" ]; then
+          curl -s -o /tmp/figma-screenshot.png "$IMG_URL"
+          echo "has_screenshot=true" >> "$GITHUB_OUTPUT"
+          echo "Figma screenshot saved"
+        else
+          echo "has_screenshot=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Could not fetch Figma screenshot for AI context"
+        fi
+
     # 4. Save analysis JSON to file
     - name: Save analysis to file
       shell: bash
@@ -130,7 +144,7 @@ runs:
         FIGMA_NODES_PATH: /tmp/figma-nodes.json
         FIGMA_STYLES_PATH: /tmp/figma-styles.json
         ANALYSIS_PATH: /tmp/canicode-analysis.json
-        HAS_SCREENSHOT: 'false'
+        HAS_SCREENSHOT: ${{ steps.figma.outputs.has_screenshot }}
       run: |
         ACTION_DIR="${{ github.action_path }}"
         case "$LLM_PROVIDER" in
