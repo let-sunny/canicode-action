@@ -37,6 +37,14 @@ const figmaNodes = readFileSync(figmaNodesPath, "utf-8");
 const figmaStyles = readFileSync(figmaStylesPath, "utf-8");
 const analysisContent = readFileSync(analysisPath, "utf-8");
 
+// Generate design tree summary
+import { execSync } from "child_process";
+const scriptDir = dirname(new URL(import.meta.url).pathname);
+try {
+  execSync(`node ${join(scriptDir, "extract-design-summary.mjs")} "${figmaNodesPath}" /tmp/design-summary.txt`, { stdio: "inherit" });
+} catch { /* ignore */ }
+const designTree = (() => { try { return readFileSync("/tmp/design-summary.txt", "utf-8"); } catch { return ""; } })();
+
 // Build message parts
 const parts = [];
 
@@ -75,19 +83,12 @@ parts.push({
     `The root element must be exactly ${designWidth}px wide and ${designHeight}px tall.`,
     "These values come from the Figma data. Do not change them.",
     "",
-    "# Figma Design Data",
-    "This is the exact Figma node tree. Every value here is intentional.",
-    "Reproduce each value exactly: colors, fonts, spacing, sizes, layout.",
+    "# Design Tree",
+    "This is the Figma design as a tree. Each node = one HTML element.",
+    "The style values are CSS-ready — copy them directly.",
     "",
-    "```json",
-    figmaNodes.length > 200_000
-      ? figmaNodes.slice(0, 200_000) + "\n... (truncated)"
-      : figmaNodes,
     "```",
-    "",
-    "# Figma Styles (design tokens)",
-    "```json",
-    figmaStyles,
+    designTree || figmaNodes.slice(0, 50_000),
     "```",
     "",
     "# Design Analysis (canicode)",
