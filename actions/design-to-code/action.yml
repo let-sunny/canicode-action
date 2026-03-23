@@ -91,17 +91,15 @@ runs:
         FILE_KEY=$(echo "$FIGMA_URL" | sed -n 's|.*\/design\/\([^/]*\)\/.*|\1|p')
         NODE_ID=$(echo "$FIGMA_URL" | sed -n 's|.*node-id=\([^&]*\).*|\1|p' | tr '-' ':')
 
-        # Fetch full node data with styles
-        curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
-          "https://api.figma.com/v1/files/${FILE_KEY}/nodes?ids=${NODE_ID}&geometry=paths" \
-          -o /tmp/figma-nodes.json
+        # Reuse fixture from score gate (node data already fetched)
+        echo "Reusing fixture from score gate: /tmp/canicode-fixture.json"
 
-        # Fetch file styles
+        # Fetch file styles (not included in fixture)
         curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
           "https://api.figma.com/v1/files/${FILE_KEY}/styles" \
           -o /tmp/figma-styles.json
 
-        echo "Figma data saved: nodes=$(jq '.nodes | length' /tmp/figma-nodes.json), styles=$(jq '.meta.styles | length' /tmp/figma-styles.json)"
+        echo "Figma styles: $(jq '.meta.styles | length' /tmp/figma-styles.json)"
 
         # Fetch screenshot for AI context
         IMG_RESPONSE=$(curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
@@ -141,7 +139,7 @@ runs:
         LLM_API_KEY: ${{ inputs.llm_api_key }}
         PROMPT_FILE: ${{ inputs.prompt_file }}
         OUTPUT_DIR: ${{ inputs.output_dir }}
-        FIGMA_NODES_PATH: /tmp/figma-nodes.json
+        FIGMA_NODES_PATH: /tmp/canicode-fixture.json
         FIGMA_STYLES_PATH: /tmp/figma-styles.json
         ANALYSIS_PATH: /tmp/canicode-analysis.json
         HAS_SCREENSHOT: ${{ steps.figma.outputs.has_screenshot }}

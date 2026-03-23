@@ -53,11 +53,13 @@ if (hasScreenshot) {
 let designWidth = 0;
 let designHeight = 0;
 try {
-  const nodesData = JSON.parse(figmaNodes);
-  const firstNode = Object.values(nodesData.nodes)[0];
-  if (firstNode?.document?.absoluteBoundingBox) {
-    designWidth = Math.round(firstNode.document.absoluteBoundingBox.width);
-    designHeight = Math.round(firstNode.document.absoluteBoundingBox.height);
+  const data = JSON.parse(figmaNodes);
+  // Support both fixture format ({document: {absoluteBoundingBox}}) and nodes API format ({nodes: {id: {document}}})
+  const bbox = data.document?.absoluteBoundingBox
+    ?? Object.values(data.nodes ?? {})[0]?.document?.absoluteBoundingBox;
+  if (bbox) {
+    designWidth = Math.round(bbox.width);
+    designHeight = Math.round(bbox.height);
   }
 } catch { /* ignore */ }
 
