@@ -21,6 +21,7 @@ Your job is to translate the Figma data to HTML+CSS — nothing more.
 - Do NOT add responsive behavior unless the Figma data explicitly shows it
 - Do NOT use min-height or min-width — use exact height and width from the data
 - Do NOT add overflow: auto or scroll unless specified
+- Fonts: load via Google Fonts CDN (`<link>` tag). Do NOT use system font fallbacks as primary — the exact font from the data must render.
 
 ### If data is missing
 When the Figma data does not specify a value, you MUST list it as an interpretation (see Output section below).
