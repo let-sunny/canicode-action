@@ -1,0 +1,4 @@
+- Set * selector with margin: 0, padding: 0, box-sizing: border-box (not specified in Figma data but needed for layout accuracy)
+- Set html lang attribute to "en" (accessibility best practice, not specified in Figma data)
+- Added meta charset and viewport tags (HTML5 requirements, not specified in Figma data)
+- Used absolute positioning for drag element within textarea (positioning method not specified in Figma data)
