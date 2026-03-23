@@ -1,0 +1,249 @@
+<!-- filename: index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Form</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Colors extracted from Figma */
+            --text-primary: #2C2C2C;
+            --text-secondary: #757575;
+            --text-placeholder: #B3B3B3;
+            --text-label: #1E1E1E;
+            --background-white: #FFFFFF;
+            --border-color: #D9D9D9;
+            --button-text: #303030;
+            --button-bg: #4B9EFF;
+            --button-border: #3B82F6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-white);
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .hero-form {
+            width: 327px;
+            display: flex;
+            flex-direction: column;
+            gap: 56px;
+            padding: 24px;
+            background-color: var(--background-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .text-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 48px;
+            line-height: 120%;
+            letter-spacing: -0.96px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 32px;
+            line-height: 120%;
+            letter-spacing: 0px;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 24px;
+            background-color: var(--background-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .label {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 140%;
+            letter-spacing: 0px;
+            color: var(--text-label);
+        }
+
+        .input {
+            padding: 12px 16px;
+            background-color: var(--background-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 100%;
+            letter-spacing: 0px;
+            color: var(--text-placeholder);
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--button-border);
+        }
+
+        .textarea {
+            padding: 12px 16px;
+            background-color: var(--background-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 140%;
+            letter-spacing: 0px;
+            color: var(--text-placeholder);
+            min-height: 80px;
+            resize: none;
+            position: relative;
+        }
+
+        .textarea:focus {
+            outline: none;
+            border-color: var(--button-border);
+        }
+
+        .textarea-container {
+            position: relative;
+        }
+
+        .resize-handle {
+            position: absolute;
+            bottom: 12px;
+            right: 16px;
+            width: 6.63px;
+            height: 6.63px;
+            pointer-events: none;
+        }
+
+        .resize-handle::before,
+        .resize-handle::after {
+            content: '';
+            position: absolute;
+            background-color: var(--text-placeholder);
+            border-radius: 1px;
+        }
+
+        .resize-handle::before {
+            width: 6.17px;
+            height: 1px;
+            top: 0;
+            left: 0;
+        }
+
+        .resize-handle::after {
+            width: 6.63px;
+            height: 1px;
+            top: 3.54px;
+            left: 0;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: stretch;
+            gap: 16px;
+        }
+
+        .button {
+            flex: 1;
+            padding: 12px;
+            background-color: var(--button-bg);
+            border: 1px solid var(--button-border);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 100%;
+            letter-spacing: 0px;
+            color: var(--button-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .button:hover {
+            background-color: #3B82F6;
+        }
+
+        .button:active {
+            background-color: #2563EB;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-form">
+        <div class="text-content">
+            <h1 class="title">Title</h1>
+            <p class="subtitle">Subtitle</p>
+        </div>
+        
+        <div class="form-container">
+            <div class="input-field">
+                <label class="label">Name</label>
+                <input type="text" class="input" placeholder="Value">
+            </div>
+            
+            <div class="input-field">
+                <label class="label">Surname</label>
+                <input type="text" class="input" placeholder="Value">
+            </div>
+            
+            <div class="input-field">
+                <label class="label">Email</label>
+                <input type="email" class="input" placeholder="Value">
+            </div>
+            
+            <div class="input-field">
+                <label class="label">Message</label>
+                <div class="textarea-container">
+                    <textarea class="textarea" placeholder="Value"></textarea>
+                    <div class="resize-handle"></div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="button">Button</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
