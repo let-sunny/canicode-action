@@ -185,8 +185,8 @@ runs:
           echo "has_compare=true" >> "$GITHUB_OUTPUT"
           echo "Visual similarity: ${SIMILARITY}%"
         else
-          echo "has_compare=false" >> "$GITHUB_OUTPUT"
-          echo "::warning::Visual compare failed — see output above"
+          echo "::error::Visual compare failed — cannot verify pixel accuracy. See output above."
+          exit 1
         fi
 
     # 8. Create PR
