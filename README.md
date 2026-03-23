@@ -105,7 +105,8 @@ Figma Design → canicode analysis → AI code generation → screenshot compari
 
 The prototype action is available at [`actions/design-to-code`](./actions/design-to-code). You can see a working example here:
 
-> [**feat: design to code (82% B)** — #5](https://github.com/let-sunny/canicode-action/pull/5)
+> [**feat: design to code** - (75% B, 98% pixel match)
+#12](https://github.com/let-sunny/canicode-action/pull/12)
 
 The AI-generated code isn't pixel-perfect yet, but we're improving accuracy by combining raw Figma node data with screenshot references.
 
