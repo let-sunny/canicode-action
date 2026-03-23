@@ -43,6 +43,9 @@ outputs:
   grade:
     description: 'canicode analysis grade'
     value: ${{ steps.gate.outputs.grade }}
+  similarity:
+    description: 'Pixel-level similarity percentage (0-100)'
+    value: ${{ steps.compare.outputs.similarity }}
   generated_files:
     description: 'List of generated files'
     value: ${{ steps.generate.outputs.files }}
@@ -77,7 +80,7 @@ runs:
           exit 1
         fi
 
-    # 3. Fetch Figma design data (screenshot + full node data with styles)
+    # 3. Fetch Figma design data (full node data with styles)
     - name: Fetch Figma design data
       id: figma
       shell: bash
@@ -88,36 +91,19 @@ runs:
         FILE_KEY=$(echo "$FIGMA_URL" | sed -n 's|.*\/design\/\([^/]*\)\/.*|\1|p')
         NODE_ID=$(echo "$FIGMA_URL" | sed -n 's|.*node-id=\([^&]*\).*|\1|p' | tr '-' ':')
 
-        echo "file_key=$FILE_KEY" >> "$GITHUB_OUTPUT"
-        echo "node_id=$NODE_ID" >> "$GITHUB_OUTPUT"
-
-        # Fetch high-res screenshot
-        IMG_RESPONSE=$(curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
-          "https://api.figma.com/v1/images/${FILE_KEY}?ids=${NODE_ID}&format=png&scale=4")
-
-        IMG_URL=$(echo "$IMG_RESPONSE" | jq -r ".images[\"${NODE_ID}\"]")
-
-        if [ "$IMG_URL" = "null" ] || [ -z "$IMG_URL" ]; then
-          echo "::warning::Could not fetch Figma screenshot"
-          echo "has_screenshot=false" >> "$GITHUB_OUTPUT"
-        else
-          curl -s -o /tmp/figma-screenshot.png "$IMG_URL"
-          echo "has_screenshot=true" >> "$GITHUB_OUTPUT"
-        fi
-
-        # Fetch full node data with styles (geometry=paths for vectors, plugin_data for tokens)
+        # Fetch full node data with styles
         curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
           "https://api.figma.com/v1/files/${FILE_KEY}/nodes?ids=${NODE_ID}&geometry=paths" \
           -o /tmp/figma-nodes.json
 
-        # Fetch file styles (color/text/effect styles)
+        # Fetch file styles
         curl -s -H "X-Figma-Token: $FIGMA_TOKEN" \
           "https://api.figma.com/v1/files/${FILE_KEY}/styles" \
           -o /tmp/figma-styles.json
 
         echo "Figma data saved: nodes=$(jq '.nodes | length' /tmp/figma-nodes.json), styles=$(jq '.meta.styles | length' /tmp/figma-styles.json)"
 
-    # 4. Save analysis JSON to file (env can't hold multiline reliably)
+    # 4. Save analysis JSON to file
     - name: Save analysis to file
       shell: bash
       env:
@@ -125,13 +111,12 @@ runs:
       run: echo "$ANALYSIS" > /tmp/canicode-analysis.json
 
     # 5. Install dependencies
-    - name: Install AI SDK and Playwright
+    - name: Install AI SDK
       shell: bash
       run: |
         ACTION_DIR="${{ github.action_path }}"
         cd "$ACTION_DIR"
-        npm install ai @ai-sdk/anthropic @ai-sdk/openai @ai-sdk/google playwright
-        npx playwright install --with-deps chromium
+        npm install ai @ai-sdk/anthropic @ai-sdk/openai @ai-sdk/google
 
     # 6. Generate code with AI
     - name: Generate code with AI
@@ -145,10 +130,9 @@ runs:
         FIGMA_NODES_PATH: /tmp/figma-nodes.json
         FIGMA_STYLES_PATH: /tmp/figma-styles.json
         ANALYSIS_PATH: /tmp/canicode-analysis.json
-        HAS_SCREENSHOT: ${{ steps.figma.outputs.has_screenshot }}
+        HAS_SCREENSHOT: 'false'
       run: |
         ACTION_DIR="${{ github.action_path }}"
-        # Set provider-specific API key
         case "$LLM_PROVIDER" in
           claude)  export ANTHROPIC_API_KEY="$LLM_API_KEY" ;;
           openai)  export OPENAI_API_KEY="$LLM_API_KEY" ;;
@@ -156,13 +140,42 @@ runs:
         esac
         node "$ACTION_DIR/generate.mjs"
 
-    # 7. Screenshot generated code
-    - name: Capture implementation screenshot
-      id: capture
+    # 7. Visual compare — pixel-level similarity via canicode CLI
+    - name: Visual compare
+      id: compare
       shell: bash
       env:
+        FIGMA_TOKEN: ${{ inputs.figma_token }}
+        FIGMA_URL: ${{ inputs.figma_url }}
         OUTPUT_DIR: ${{ inputs.output_dir }}
-      run: node "${{ github.action_path }}/capture.mjs"
+      run: |
+        # Find the main HTML file
+        HTML_FILE=$(find "$OUTPUT_DIR" -name "index.html" -o -name "preview.html" -o -name "main.html" | head -1)
+        if [ -z "$HTML_FILE" ]; then
+          HTML_FILE=$(find "$OUTPUT_DIR" -name "*.html" | head -1)
+        fi
+
+        if [ -z "$HTML_FILE" ]; then
+          echo "::warning::No HTML file found — skipping visual compare"
+          echo "similarity=-1" >> "$GITHUB_OUTPUT"
+          echo "has_compare=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # Install Playwright for visual-compare
+        npx playwright install --with-deps chromium
+
+        # Run visual compare
+        RESULT=$(npx canicode visual-compare "$HTML_FILE" \
+          --figma-url "$FIGMA_URL" \
+          --token "$FIGMA_TOKEN" \
+          --output /tmp/canicode-visual-compare 2>&1)
+
+        # Extract similarity from JSON output
+        SIMILARITY=$(echo "$RESULT" | sed -n '/^{/,/^}/p' | jq -r '.similarity // -1')
+        echo "similarity=$SIMILARITY" >> "$GITHUB_OUTPUT"
+        echo "has_compare=true" >> "$GITHUB_OUTPUT"
+        echo "Visual similarity: ${SIMILARITY}%"
 
     # 8. Create PR
     - name: Create PR
@@ -173,50 +186,51 @@ runs:
         OUTPUT_DIR: ${{ inputs.output_dir }}
         SCORE: ${{ steps.gate.outputs.score }}
         GRADE: ${{ steps.gate.outputs.grade }}
+        SIMILARITY: ${{ steps.compare.outputs.similarity }}
         FIGMA_URL: ${{ inputs.figma_url }}
-        HAS_SCREENSHOT: ${{ steps.figma.outputs.has_screenshot }}
-        HAS_CAPTURE: ${{ steps.capture.outputs.has_capture }}
+        HAS_COMPARE: ${{ steps.compare.outputs.has_compare }}
       run: |
         BRANCH="design-to-code/$(date +%Y%m%d-%H%M%S)"
         git checkout -b "$BRANCH"
 
         git add "$OUTPUT_DIR"
 
+        # Add screenshots from visual-compare
         mkdir -p .github/design-comparison
-        if [ "$HAS_SCREENSHOT" = "true" ]; then
-          cp /tmp/figma-screenshot.png .github/design-comparison/
-          git add .github/design-comparison/figma-screenshot.png
-        fi
-        if [ "$HAS_CAPTURE" = "true" ]; then
-          cp /tmp/implementation-screenshot.png .github/design-comparison/
-          git add .github/design-comparison/implementation-screenshot.png
+        if [ "$HAS_COMPARE" = "true" ] && [ -f /tmp/canicode-visual-compare/figma.png ]; then
+          cp /tmp/canicode-visual-compare/figma.png .github/design-comparison/
+          cp /tmp/canicode-visual-compare/code.png .github/design-comparison/
+          cp /tmp/canicode-visual-compare/diff.png .github/design-comparison/
+          git add .github/design-comparison/
         fi
 
         git -c user.name="github-actions[bot]" \
             -c user.email="github-actions[bot]@users.noreply.github.com" \
-            commit -m "feat: generate code from Figma design (${SCORE}% ${GRADE})"
+            commit -m "feat: generate code from Figma design (${SCORE}% ${GRADE}, ${SIMILARITY}% similarity)"
         git push origin "$BRANCH"
 
         # Build PR body
         {
           echo "## Design to Code"
           echo ""
-          echo "canicode score: ${SCORE}% (${GRADE})"
-          echo ""
-          echo "Figma: ${FIGMA_URL}"
+          echo "| Metric | Value |"
+          echo "|--------|-------|"
+          echo "| canicode score | ${SCORE}% (${GRADE}) |"
+          echo "| pixel similarity | ${SIMILARITY}% |"
+          echo "| Figma | ${FIGMA_URL} |"
         } > /tmp/pr-body.md
 
         REPO="${{ github.repository }}"
         RAW_BASE="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
 
-        if [ "$HAS_SCREENSHOT" = "true" ] && [ "$HAS_CAPTURE" = "true" ]; then
+        if [ "$HAS_COMPARE" = "true" ] && [ -f /tmp/canicode-visual-compare/figma.png ]; then
           {
             echo ""
             echo "### Screenshot Comparison"
             echo ""
-            echo "| Figma (original) | AI (generated) |"
-            echo "|:---:|:---:|"
-            echo "| ![Figma](${RAW_BASE}/.github/design-comparison/figma-screenshot.png) | ![AI](${RAW_BASE}/.github/design-comparison/implementation-screenshot.png) |"
+            echo "| Figma (original) | AI (generated) | Diff |"
+            echo "|:---:|:---:|:---:|"
+            echo "| ![Figma](${RAW_BASE}/.github/design-comparison/figma.png) | ![AI](${RAW_BASE}/.github/design-comparison/code.png) | ![Diff](${RAW_BASE}/.github/design-comparison/diff.png) |"
           } >> /tmp/pr-body.md
         fi
 
@@ -227,7 +241,7 @@ runs:
         } >> /tmp/pr-body.md
 
         PR_URL=$(gh pr create \
-          --title "feat: design to code (${SCORE}% ${GRADE})" \
+          --title "feat: design to code (${SCORE}% ${GRADE}, ${SIMILARITY}% pixel match)" \
           --body-file /tmp/pr-body.md)
 
         echo "url=$PR_URL" >> "$GITHUB_OUTPUT"
