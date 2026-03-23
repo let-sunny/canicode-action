@@ -1,0 +1,7 @@
+- Used system font "Inter" fallback: -apple-system, BlinkMacSystemFont (font not embedded in data)
+- Set body margin to 0 (not specified in Figma data)
+- Assumed border-radius 8px for form container and input fields (visible in design but not explicitly specified in node data)
+- Used semantic HTML form elements (form, input, textarea, button, label) instead of generic divs for better accessibility
+- Added cursor: pointer to submit button for better UX
+- Set resize: none on textarea to match design appearance
+- Used placeholder attribute for input values since they appear as placeholder text in the design
