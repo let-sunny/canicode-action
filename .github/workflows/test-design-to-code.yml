@@ -27,6 +27,6 @@ jobs:
           figma_token: ${{ secrets.FIGMA_TOKEN }}
           output_dir: generated
           prompt_file: .github/canicode-prompt.md
-          llm_provider: openai
-          llm_api_key: ${{ secrets.OPENAI_API_KEY }}
+          llm_provider: claude
+          llm_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           min_score: ${{ inputs.min_score }}
