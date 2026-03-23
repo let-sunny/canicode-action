@@ -1,0 +1,244 @@
+<!-- filename: index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Colors from Figma data */
+            --bg-primary: #f5f5f5;
+            --bg-white: #ffffff;
+            --text-primary: #2c2c2c;
+            --text-secondary: #757575;
+            --text-placeholder: #b3b3b3;
+            --border-color: #d9d9d9;
+            --button-bg: #2c2c2c;
+            --button-text: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            width: 375px;
+            min-height: 960px;
+            margin: 0 auto;
+        }
+
+        .hero-form {
+            width: 375px;
+            min-height: 960px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            padding: 160px 24px;
+            background-color: var(--bg-primary);
+        }
+
+        .text-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 48px;
+            line-height: 120%;
+            letter-spacing: -0.96px;
+            text-align: center;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .subtitle {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 32px;
+            line-height: 120%;
+            text-align: center;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 327px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 24px;
+            background-color: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field-label {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 140%;
+            color: var(--text-primary);
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 40px;
+        }
+
+        .input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 100%;
+            color: var(--text-primary);
+            background: transparent;
+        }
+
+        .input::placeholder {
+            color: var(--text-placeholder);
+        }
+
+        .textarea-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .textarea-wrapper {
+            padding: 12px 16px;
+            background-color: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 80px;
+            position: relative;
+        }
+
+        .textarea {
+            width: 100%;
+            height: 56px;
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            line-height: 140%;
+            color: var(--text-primary);
+            background: transparent;
+            resize: none;
+        }
+
+        .textarea::placeholder {
+            color: var(--text-placeholder);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            width: 100%;
+        }
+
+        .submit-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 16px;
+            cursor: pointer;
+            min-height: 40px;
+            flex: 1;
+        }
+
+        .submit-button:hover {
+            background-color: #1a1a1a;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 375px) {
+            .hero-form {
+                width: 100%;
+                padding: 160px 20px;
+            }
+            
+            .form-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-form">
+        <div class="text-content">
+            <h1 class="title">Title</h1>
+            <p class="subtitle">Subtitle</p>
+        </div>
+        
+        <form class="form-container">
+            <div class="input-field">
+                <label class="field-label">Name</label>
+                <div class="input-wrapper">
+                    <input type="text" class="input" placeholder="Value" />
+                </div>
+            </div>
+            
+            <div class="input-field">
+                <label class="field-label">Surname</label>
+                <div class="input-wrapper">
+                    <input type="text" class="input" placeholder="Value" />
+                </div>
+            </div>
+            
+            <div class="input-field">
+                <label class="field-label">Email</label>
+                <div class="input-wrapper">
+                    <input type="email" class="input" placeholder="Value" />
+                </div>
+            </div>
+            
+            <div class="textarea-field">
+                <label class="field-label">Message</label>
+                <div class="textarea-wrapper">
+                    <textarea class="textarea" placeholder="Value"></textarea>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="submit-button">Submit</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
