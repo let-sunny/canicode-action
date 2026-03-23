@@ -49,12 +49,31 @@ if (hasScreenshot) {
   });
 }
 
+// Extract root node dimensions from Figma data
+let designWidth = 0;
+let designHeight = 0;
+try {
+  const nodesData = JSON.parse(figmaNodes);
+  const firstNode = Object.values(nodesData.nodes)[0];
+  if (firstNode?.document?.absoluteBoundingBox) {
+    designWidth = Math.round(firstNode.document.absoluteBoundingBox.width);
+    designHeight = Math.round(firstNode.document.absoluteBoundingBox.height);
+  }
+} catch { /* ignore */ }
+
+console.log(`  Design size: ${designWidth}x${designHeight}`);
+
 // Text content — Figma raw data has full style info (colors, fonts, spacing, effects)
 parts.push({
   type: "text",
   text: [
     "# Instructions",
     promptContent,
+    "",
+    `# Design Dimensions: ${designWidth}px x ${designHeight}px`,
+    "CRITICAL: The output HTML must render at exactly this size.",
+    `Set the root container to width: ${designWidth}px and min-height: ${designHeight}px.`,
+    "Do NOT use 100vw or 100% width — use the exact pixel value.",
     "",
     "# Figma Design Data (full node tree with styles)",
     "This is the raw Figma API response. It contains exact colors (fills), fonts (style),",
